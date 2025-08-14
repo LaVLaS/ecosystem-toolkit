@@ -15,8 +15,10 @@ ROCM_VERSION ?=
 AMD_DRIVER_VERSION ?=
 
 OCP_VERSION ?= v4.19
-KERNEL_VERSION ?= 5.14.0-570.27.1.el9_6.x86_64
 DRIVER_TOOLKIT_IMAGE ?= registry.redhat.io/openshift4/driver-toolkit-rhel9:$(OCP_VERSION)
+# If not specified, query the driver toolkit container to get the kernel version
+# we will be building the module against
+KERNEL_VERSION ?= $(shell $(CONTAINER_MANAGER) run --rm $(DRIVER_TOOLKIT_IMAGE) rpm -q kernel-devel | sed 's/kernel-devel-\(.\+\)/\1/')
 
 IMAGE_REGISTRY_ORG ?= "<<quay.io/IMAGE-ORG>>"
 IMAGE_REGISTRY_NAMESPACE ?= "<<IMAGE REPOSITORY NAME>>"
