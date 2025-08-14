@@ -1,0 +1,58 @@
+ARG AMDGPU_DKMS_SRC_IMAGE
+ARG DTK_AUTO
+ARG BASE_IMAGE
+
+FROM ${AMDGPU_DKMS_SRC_IMAGE} as amdgpu-dkms-src
+#*******************************************************************************
+#*******************************************************************************
+FROM ${DTK_AUTO} as builder
+ARG KERNEL_VERSION
+ARG ROCM_VERSION
+ARG AMD_DRIVER_VERSION
+
+# Loading source that is extracted from amdgpu-dkms & amdgpu-dkms-firmware
+COPY --from=amdgpu-dkms-src /amdgpu-src/amdgpu-${AMD_DRIVER_VERSION} /amdgpu-src
+COPY --from=amdgpu-dkms-src /amdgpu-src/amdgpu-firmware /amdgpu-firmware
+
+WORKDIR /amdgpu-src
+
+RUN make KERNELVER=${KERNEL_VERSION} modules
+
+RUN mkdir -p /lib/modules/${KERNEL_VERSION}/amd/amdgpu && \
+    mkdir -p /lib/modules/${KERNEL_VERSION}/amd/amdkcl && \
+    mkdir -p /lib/modules/${KERNEL_VERSION}/amd/amdxcp && \
+    mkdir -p /lib/modules/${KERNEL_VERSION}/scheduler && \
+    mkdir -p /lib/modules/${KERNEL_VERSION}/ttm && \
+    rm -f /lib/modules/${KERNEL_VERSION}/kernel/drivers/gpu/drm/amd/amdgpu/amdgpu.ko.xz && \
+    cp /amdgpu-src/amd/amdgpu/amdgpu.ko /lib/modules/${KERNEL_VERSION}/amd/amdgpu/amdgpu.ko && \
+    cp /amdgpu-src/amd/amdkcl/amdkcl.ko /lib/modules/${KERNEL_VERSION}/amd/amdkcl/amdkcl.ko && \
+    cp /amdgpu-src/amd/amdxcp/amdxcp.ko /lib/modules/${KERNEL_VERSION}/amd/amdxcp/amdxcp.ko && \
+    cp /amdgpu-src/scheduler/amd-sched.ko /lib/modules/${KERNEL_VERSION}/scheduler/amd-sched.ko && \
+    cp /amdgpu-src/ttm/amdttm.ko /lib/modules/${KERNEL_VERSION}/ttm/amdttm.ko && \
+    cp /amdgpu-src/amddrm_buddy.ko /lib/modules/${KERNEL_VERSION}/amddrm_buddy.ko && \
+    cp /amdgpu-src/amddrm_ttm_helper.ko /lib/modules/${KERNEL_VERSION}/amddrm_ttm_helper.ko
+
+RUN depmod ${KERNEL_VERSION}
+
+RUN mkdir -p /modules_files && \
+    mkdir -p /amdgpu_ko_files && \
+    mkdir -p /kernel_files && \
+    mkdir -p /firmware_files && \
+    cp /lib/modules/${KERNEL_VERSION}/modules.* /modules_files/ && \
+    cp -r /lib/modules/${KERNEL_VERSION}/kernel/* /kernel_files/ && \
+    cp -r /amdgpu-firmware* /firmware_files/
+
+#*******************************************************************************
+#*******************************************************************************
+FROM ${BASE_IMAGE}
+
+ARG KERNEL_VERSION
+
+#RUN microdnf install -y kmod
+
+COPY --from=builder /amdgpu_ko_files /opt/lib/modules/${KERNEL_VERSION}/extra
+COPY --from=builder /kernel_files /opt/lib/modules/${KERNEL_VERSION}/kernel
+COPY --from=builder /modules_files /opt/lib/modules/${KERNEL_VERSION}/
+COPY --from=builder /amdgpu-firmware /firmwareDir/updates/amdgpu
+
+#RUN depmod -b /opt ${KERNEL_VERSION}

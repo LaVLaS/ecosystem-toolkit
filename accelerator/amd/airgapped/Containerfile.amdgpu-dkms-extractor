@@ -9,9 +9,9 @@ ARG REPO_BASE_URL=https://repo.radeon.com
 ARG ROCM_VERSION
 ARG OS_DISTRO=rhel
 ARG OS_VERSION_ID
-ARG AMDGPU_DRIVER_VERSION
+ARG AMD_DRIVER_VERSION
 
-ENV AMDGPU_DRIVER_VERSION=${AMDGPU_DRIVER_VERSION}
+ENV AMD_DRIVER_VERSION=${AMD_DRIVER_VERSION}
 
 WORKDIR /amdgpu-rpm
 
@@ -26,8 +26,8 @@ gpgkey=${REPO_BASE_URL}/rocm/rocm.gpg.key" > /etc/yum.repos.d/amdgpu.repo
 
 
 RUN mkdir -p /amdgpu-src && \
-    dnf download amdgpu-dkms && bash -c 'rpm2archive amdgpu-dkms-${AMDGPU_DRIVER_VERSION}.noarch.rpm && tar zxvf amdgpu-dkms-${AMDGPU_DRIVER_VERSION}.noarch.rpm.tgz' && cp -r /amdgpu-rpm/usr/src/amdgpu* /amdgpu-src/ && \
-    dnf download amdgpu-dkms-firmware && bash -c 'rpm2archive amdgpu-dkms-firmware-${AMDGPU_DRIVER_VERSION}.noarch.rpm && tar zxvf amdgpu-dkms-firmware-${AMDGPU_DRIVER_VERSION}.noarch.rpm.tgz' && cp -r /amdgpu-rpm/lib/firmware/updates/amdgpu /amdgpu-src/amdgpu-firmware/
+    dnf download amdgpu-dkms && bash -c 'rpm2archive amdgpu-dkms-${AMD_DRIVER_VERSION}.noarch.rpm && tar zxvf amdgpu-dkms-${AMD_DRIVER_VERSION}.noarch.rpm.tgz' && cp -r /amdgpu-rpm/usr/src/amdgpu* /amdgpu-src/ && \
+    dnf download amdgpu-dkms-firmware && bash -c 'rpm2archive amdgpu-dkms-firmware-${AMD_DRIVER_VERSION}.noarch.rpm && tar zxvf amdgpu-dkms-firmware-${AMD_DRIVER_VERSION}.noarch.rpm.tgz' && cp -r /amdgpu-rpm/lib/firmware/updates/amdgpu /amdgpu-src/amdgpu-firmware/
 
 #*******************************************************************************
 #*******************************************************************************
@@ -41,4 +41,3 @@ kernel module and firmware binaries extracted from the amdgpu-dkms rpms"
 WORKDIR /amdgpu-src
 
 COPY --from=rpm-extractor /amdgpu-src .
-RUN echo "${AMDGPU_DRIVER_VERSION}!!!"
