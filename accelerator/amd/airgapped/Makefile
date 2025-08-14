@@ -1,19 +1,25 @@
+# Add support for import variables from an external file to eliminate the need to
+# define them on the commandline OR support multiple invocations of the makefile
+# targets across different package versions and architecture
+ENV_MAKEFILE ?= env.mk
+-include $(ENV_MAKEFILE)
+
 CONTAINER_MANAGER ?= podman 
 
-BASE_IMAGE_EXTRACTOR := quay.io/centos/centos:stream9
-BASE_IMAGE := quay.io/centos/centos:stream9-minimal
-REPO_BASE_URL := https://repo.radeon.com
-OS_DISTRO := el
-OS_VERSION_ID := 9.6
-ROCM_VERSION :=
-AMDGPU_DRIVER_VERSION :=
+BASE_IMAGE_EXTRACTOR ?= quay.io/centos/centos:stream9
+BASE_IMAGE ?= quay.io/centos/centos:stream9-minimal
+REPO_BASE_URL ?= https://repo.radeon.com
+OS_DISTRO ?= el
+OS_VERSION_ID ?= 9.6
+ROCM_VERSION ?=
+AMDGPU_DRIVER_VERSION ?=
 
 
-IMAGE_REGISTRY_ORG := "<<quay.io/IMAGE-ORG>>"
-IMAGE_REGISTRY_NAMESPACE := "<<IMAGE REPOSITORY NAME>>"
-IMAGE_REGISTRY_NAMESPACE_AMDGPU_SRC := "<<AMDGPU IMAGE REPOSITORY NAME>>"
+IMAGE_REGISTRY_ORG ?= "<<quay.io/IMAGE-ORG>>"
+IMAGE_REGISTRY_NAMESPACE ?= "<<IMAGE REPOSITORY NAME>>"
+IMAGE_REGISTRY_NAMESPACE_AMDGPU_SRC ?= "<<AMDGPU IMAGE REPOSITORY NAME>>"
 
-CONTAINERFILE_EXTRACTOR := Containerfile.amdgpu-dkms-extractor
+CONTAINERFILE_EXTRACTOR ?= Containerfile.amdgpu-dkms-extractor
 
 .PHONY: image-extractor
 
