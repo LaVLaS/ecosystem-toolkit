@@ -1,3 +1,8 @@
+# Builds the AMDGPU driver container that will be integrated with the 
+#  Kernel Module Management build chain.
+# This depends on a container with the amdgpu-dkms source code to be available 
+#  in the initial stage as the source location for the build of the kernel module
+#  in the Driver Toolkit container
 ARG AMDGPU_DKMS_SRC_IMAGE
 ARG DTK_AUTO
 ARG BASE_IMAGE
@@ -23,7 +28,9 @@ RUN mkdir -p /lib/modules/${KERNEL_VERSION}/amd/amdgpu && \
     mkdir -p /lib/modules/${KERNEL_VERSION}/amd/amdxcp && \
     mkdir -p /lib/modules/${KERNEL_VERSION}/scheduler && \
     mkdir -p /lib/modules/${KERNEL_VERSION}/ttm && \
+    # Delete the compressed in-tree amdgpu module
     rm -f /lib/modules/${KERNEL_VERSION}/kernel/drivers/gpu/drm/amd/amdgpu/amdgpu.ko.xz && \
+    # Copy our new kernel modules to the kernel module tree
     cp /amdgpu-src/amd/amdgpu/amdgpu.ko /lib/modules/${KERNEL_VERSION}/amd/amdgpu/amdgpu.ko && \
     cp /amdgpu-src/amd/amdkcl/amdkcl.ko /lib/modules/${KERNEL_VERSION}/amd/amdkcl/amdkcl.ko && \
     cp /amdgpu-src/amd/amdxcp/amdxcp.ko /lib/modules/${KERNEL_VERSION}/amd/amdxcp/amdxcp.ko && \
@@ -32,8 +39,10 @@ RUN mkdir -p /lib/modules/${KERNEL_VERSION}/amd/amdgpu && \
     cp /amdgpu-src/amddrm_buddy.ko /lib/modules/${KERNEL_VERSION}/amddrm_buddy.ko && \
     cp /amdgpu-src/amddrm_ttm_helper.ko /lib/modules/${KERNEL_VERSION}/amddrm_ttm_helper.ko
 
+# Rebuild the kernel module dependency tree
 RUN depmod ${KERNEL_VERSION}
 
+# Copy the new amdgpu kernel module tree & firmware to a known location
 RUN mkdir -p /modules_files && \
     mkdir -p /amdgpu_ko_files && \
     mkdir -p /kernel_files && \
