@@ -26,7 +26,7 @@ gpgkey=${REPO_BASE_URL}/rocm/rocm.gpg.key" > /etc/yum.repos.d/amdgpu.repo
 
 
 RUN mkdir -p /amdgpu-src && \
-    dnf download amdgpu-dkms && bash -c 'rpm2archive amdgpu-dkms-${AMD_DRIVER_VERSION}.noarch.rpm && tar zxvf amdgpu-dkms-${AMD_DRIVER_VERSION}.noarch.rpm.tgz' && cp -r /amdgpu-rpm/usr/src/amdgpu* /amdgpu-src/ && \
+    dnf download amdgpu-dkms && bash -c 'rpm2archive amdgpu-dkms-${AMD_DRIVER_VERSION}.noarch.rpm && tar zxvf amdgpu-dkms-${AMD_DRIVER_VERSION}.noarch.rpm.tgz' && cp -r /amdgpu-rpm/usr/src/amdgpu* /amdgpu-src/amdgpu-${AMD_DRIVER_VERSION} && \
     dnf download amdgpu-dkms-firmware && bash -c 'rpm2archive amdgpu-dkms-firmware-${AMD_DRIVER_VERSION}.noarch.rpm && tar zxvf amdgpu-dkms-firmware-${AMD_DRIVER_VERSION}.noarch.rpm.tgz' && cp -r /amdgpu-rpm/lib/firmware/updates/amdgpu /amdgpu-src/amdgpu-firmware/
 
 #*******************************************************************************
