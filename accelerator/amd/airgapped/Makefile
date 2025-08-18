@@ -6,7 +6,7 @@ ENV_MAKEFILE ?= env.mk
 
 CONTAINER_MANAGER ?= podman 
 
-BASE_IMAGE_EXTRACTOR ?= quay.io/centos/centos:stream9
+BASE_IMAGE_DKMS_SRC ?= quay.io/centos/centos:stream9
 BASE_IMAGE ?= quay.io/centos/centos:stream9-minimal
 REPO_BASE_URL ?= https://repo.radeon.com
 OS_DISTRO ?= el
@@ -27,14 +27,14 @@ IMAGE_REGISTRY_NAMESPACE_KMM_BUILD ?= "<<KMM IMAGE REPOSITORY NAME>>"
 AMDGPU_DKMS_SRC_IMAGE ?= $(IMAGE_REGISTRY_ORG)/$(IMAGE_REGISTRY_NAMESPACE_AMDGPU_SRC):rocm$(ROCM_VERSION)-$(OS_DISTRO)$(OS_VERSION_ID)
 AMDGPU_KMM_IMAGE ?= $(IMAGE_REGISTRY_ORG)/$(IMAGE_REGISTRY_NAMESPACE_KMM_BUILD):rocm$(ROCM_VERSION)-$(OS_DISTRO)$(OS_VERSION_ID)
 
-CONTAINERFILE_EXTRACTOR ?= Containerfile.amdgpu-dkms-extractor
+CONTAINERFILE_DKMS_SRC ?= Containerfile.amdgpu-dkms-src
 CONTAINERFILE_KMM_BUILD ?= Containerfile.amdgpu-dkms-kmm
 
-.PHONY: image-extractor image-kmm-build
+.PHONY: image-dkms-src image-kmm-build
 
-image-extractor:
-	$(CONTAINER_MANAGER) build -f $(CONTAINERFILE_EXTRACTOR) -t $(AMDGPU_DKMS_SRC_IMAGE) \
-		--build-arg BASE_IMAGE_EXTRACTOR=$(BASE_IMAGE_EXTRACTOR) \
+image-dkms-src:
+	$(CONTAINER_MANAGER) build -f $(CONTAINERFILE_DKMS_SRC) -t $(AMDGPU_DKMS_SRC_IMAGE) \
+		--build-arg BASE_IMAGE_DKMS_SRC=$(BASE_IMAGE_DKMS_SRC) \
 		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
 		--build-arg ROCM_VERSION=$(ROCM_VERSION) \
 		--build-arg AMD_DRIVER_VERSION=$(AMD_DRIVER_VERSION) \

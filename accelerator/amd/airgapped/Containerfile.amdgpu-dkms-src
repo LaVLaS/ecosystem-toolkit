@@ -1,10 +1,10 @@
 # Muli-stage build to download and extract the amdgpu-dkms kernel module source code & firmware binaries for the specified ROCm and OS build
 # This stage will download the admgpu-dkms rpms for module source and firmware binaries for use in the later stages
 # We just want to isolate and abstract the environment used to transport/transfer the source and firmware to the build environment
-ARG BASE_IMAGE_EXTRACTOR=registry.redhat.io/ubi9/ubi
+ARG BASE_IMAGE_DKMS_SRC=registry.redhat.io/ubi9/ubi
 ARG BASE_IMAGE=registry.redhat.io/ubi9/ubi-micro
 
-FROM ${BASE_IMAGE_EXTRACTOR} as rpm-extractor
+FROM ${BASE_IMAGE_DKMS_SRC} as rpm-extractor
 ARG REPO_BASE_URL=https://repo.radeon.com
 ARG ROCM_VERSION
 ARG OS_DISTRO=rhel
