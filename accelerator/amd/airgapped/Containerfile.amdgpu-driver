@@ -1,0 +1,43 @@
+# Muli-stage build to download and extract the amdgpu-dkms kernel module source code & firmware binaries for the specified ROCm and OS build
+# This stage will download the admgpu-dkms rpms for module source and firmware binaries for use in the later stages
+# We just want to isolate and abstract the environment used to transport/transfer the source and firmware to the build environment
+ARG BASE_IMAGE_DKMS_SRC=registry.redhat.io/ubi9/ubi
+ARG BASE_IMAGE=registry.redhat.io/ubi9/ubi-micro
+
+FROM ${BASE_IMAGE_DKMS_SRC} as rpm-extractor
+ARG REPO_BASE_URL=https://repo.radeon.com
+ARG ROCM_VERSION
+ARG OS_DISTRO=rhel
+ARG OS_VERSION_ID
+ARG AMD_DRIVER_VERSION
+ARG AMD_FIRMWARE_VERSION
+ENV AMD_DRIVER_VERSION=${AMD_DRIVER_VERSION}
+
+WORKDIR /amdgpu-rpm
+
+RUN source /etc/os-release && \
+echo -e "[amdgpu] \n\
+name=amdgpu \n\
+baseurl=${REPO_BASE_URL}/amdgpu/${ROCM_VERSION}/rhel/${OS_VERSION_ID}/main/x86_64/ \n\
+enabled=1 \n\
+priority=50 \n\
+gpgcheck=1 \n\
+gpgkey=${REPO_BASE_URL}/rocm/rocm.gpg.key" > /etc/yum.repos.d/amdgpu.repo
+
+
+RUN mkdir -p /amdgpu_src && \
+    dnf download amdgpu-dkms && bash -c 'rpm2archive amdgpu-dkms-${AMD_DRIVER_VERSION}.noarch.rpm && tar zxvf amdgpu-dkms-${AMD_DRIVER_VERSION}.noarch.rpm.tgz' && cp -r /amdgpu-rpm/usr/src/amdgpu* /amdgpu_src/driver && \
+    dnf download amdgpu-dkms-firmware && bash -c 'rpm2archive amdgpu-dkms-firmware-${AMD_FIRMWARE_VERSION}.noarch.rpm && tar zxvf amdgpu-dkms-firmware-${AMD_FIRMWARE_VERSION}.noarch.rpm.tgz' && cp -r /amdgpu-rpm/lib/firmware/updates/amdgpu /amdgpu_src/firmware/
+
+#*******************************************************************************
+#*******************************************************************************
+FROM ${BASE_IMAGE}
+
+LABEL description="Contains the extracted source code for the AMDGPU \
+kernel module and firmware binaries extracted from the amdgpu-dkms rpms"
+LABEL io.k8s.description="Contains the extracted source code for the AMDGPU \
+kernel module and firmware binaries extracted from the amdgpu-dkms rpms"
+
+WORKDIR /amdgpu_src
+
+COPY --from=rpm-extractor /amdgpu_src .
